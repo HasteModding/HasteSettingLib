@@ -32,11 +32,10 @@ public class CollapsibleSettingUI : SettingInputUICell
             ApplyEnclosingStyling();
             AddCollapseButton();
 
-            // Run setup for all settings
+            // Run setup for all settings, except non-shown conditionals
             foreach (var subsetting in group.GetSettings())
-            {
-                AddSettingBlock(subsetting);
-            }
+                if (!(subsetting is IConditionalSetting conditional) || conditional.CanShow())
+                    AddSettingBlock(subsetting);
 
             SetVisibility();
         }

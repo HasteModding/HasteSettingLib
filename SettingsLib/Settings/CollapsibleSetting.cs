@@ -1,5 +1,4 @@
 using System.Reflection;
-using SettingsLib.Settings.UI;
 using UnityEngine;
 using UnityEngine.UI;
 using Zorro.Settings;
@@ -50,7 +49,7 @@ public abstract class CollapsibleSetting : Setting
 
     public override SettingUI GetDebugUI(ISettingHandler settingHandler)
     {
-        throw new NotImplementedException();
+        return new DebugUI.CollapsibleSettingUI(this, settingHandler);
     }
 
     public override GameObject GetSettingUICell()
@@ -61,7 +60,7 @@ public abstract class CollapsibleSetting : Setting
         var vlg = obj.AddComponent<VerticalLayoutGroup>();
         vlg.padding.left = 10;
         vlg.padding.right = 10;
-        obj.AddComponent<CollapsibleSettingUI>();
+        obj.AddComponent<UI.CollapsibleSettingUI>();
 
         return obj;
     }
