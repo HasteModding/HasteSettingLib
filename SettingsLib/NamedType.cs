@@ -8,7 +8,7 @@ namespace SettingsLib;
 /// This will temporarily exist as long as ISettingsSaveLoad requires a Type
 /// as its key, instead of a string.
 /// </summary>
-class NamedType : Type
+public class NamedType : Type
 {
     private string _partialName;
     private string _name;

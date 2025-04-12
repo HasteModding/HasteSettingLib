@@ -24,8 +24,6 @@
         <Reference Include="$(HasteDlls)" Private="false" />
         <!-- Harmony -->
         <!-- <Reference Include="C:\Program Files (x86)\Steam\steamapps\workshop\content\1796470\3385184093\*.dll" Private="false"/> -->
-
-        <PackageReference Include="Buttplug" Version="4.0.0" Private="true" />
     </ItemGroup>
 
 </Project>
