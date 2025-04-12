@@ -8,7 +8,7 @@ namespace SettingsLib.Settings;
 
 public abstract class CollapsibleSetting : Setting
 {
-    public List<Setting> GetSettings()
+    public virtual List<Setting> GetSettings()
     {
         var settings = new List<Setting>();
 
