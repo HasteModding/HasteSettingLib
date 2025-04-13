@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Localization;
 using Zorro.Core;
 using Zorro.Localization;
 using Zorro.Settings;
@@ -119,18 +120,26 @@ public class CollapsibleSettingUI : SettingInputUICell
     {
         var block = UnityEngine.Object.Instantiate(settingObject, transform);
 
-        AddSettingTitle(setting, block.transform);
-        AddSetting(setting, block.transform, settingHandler);
-    }
-
-    private void AddSettingTitle(Setting setting, Transform transform)
-    {
+        LocalizedString titleText = null!;
         if (setting is IExposedSetting exposedSetting)
         {
-            transform
-                .GetComponentInChildren<LocalizeUIText>()
-                ?.SetString(exposedSetting.GetDisplayName());
+            titleText = exposedSetting.GetDisplayName();
         }
+
+        // Find the title child object (it's the first child based on SetUpSettingObject)
+        var titleChildTransform = block.transform.GetChild(0);
+
+        // If the title is empty, destroy the title object. Otherwise, set its text.
+        if (titleText == null || titleText.IsEmpty)
+        {
+            UnityEngine.Object.Destroy(titleChildTransform.gameObject);
+        }
+        else
+        {
+            titleChildTransform.GetComponentInChildren<LocalizeUIText>()?.SetString(titleText);
+        }
+
+        AddSetting(setting, block.transform, settingHandler);
     }
 
     private void AddSetting(Setting setting, Transform transform, ISettingHandler settingHandler)
