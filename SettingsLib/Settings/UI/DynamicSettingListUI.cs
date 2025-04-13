@@ -1,24 +1,25 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Zorro.Core;
 using Zorro.Localization;
 using Zorro.Settings;
 
 namespace SettingsLib.Settings.UI;
 
-public class CollapsibleSettingUI : SettingInputUICell
+public class DynamicSettingListUI : SettingInputUICell
 {
     // Track expanded state
     private bool _expanded = false;
     private GameObject titleObject = new GameObject("SettingTitle");
     private GameObject settingObject = new GameObject("SettingCell");
+    private DynamicSettingList? _setting;
+    private ISettingHandler _settingHandler = GameHandler.Instance.SettingsHandler;
     private string collapseButtonText
     {
         get => _expanded ? "▼ Collapse" : "► Expand";
     }
 
-    public CollapsibleSettingUI()
+    public DynamicSettingListUI()
         : base()
     {
         SetUpTitleObject();
@@ -27,59 +28,49 @@ public class CollapsibleSettingUI : SettingInputUICell
 
     public override void Setup(Setting setting, ISettingHandler settingHandler)
     {
-        if (setting is CollapsibleSetting group)
+        if (setting is DynamicSettingList dynamicSetting)
         {
             ApplyEnclosingStyling();
-            AddCollapseButton();
 
-            // Run setup for all settings, except non-shown conditionals
-            foreach (var subsetting in group.GetSettings())
-                if (!(subsetting is IConditionalSetting conditional) || conditional.CanShow())
-                    AddSettingBlock(subsetting, settingHandler);
-
-            SetVisibility();
+            _setting = dynamicSetting;
+            _settingHandler = settingHandler;
+            AddChildren();
         }
     }
 
-    private void AddCollapseButton()
+    public void RefreshList()
     {
-        var ui = UnityEngine.Object.Instantiate(
-            SingletonAsset<InputCellMapper>.Instance.ButtonSettingCell,
-            transform
-        );
-        ui.AddComponent<LayoutElement>().preferredHeight = 55;
-        var buttonUI = ui.GetComponent<Zorro.Settings.UI.ButtonSettingUI>();
-        buttonUI.Label.text = collapseButtonText;
-        buttonUI.Button.onClick.AddListener(() =>
-        {
-            OnToggled();
-            buttonUI.Label.text = collapseButtonText;
-        });
-        ui.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-    }
+        RemoveChildren();
+        AddChildren();
 
-    private void OnToggled()
-    {
-        _expanded = !_expanded;
-        SetVisibility();
-    }
-
-    private void SetVisibility()
-    {
-        // Skip the first child, as it is the collapse button.
-        for (var i = 1; i < transform.childCount; i++)
-        {
-            var child = transform.GetChild(i);
-            child.gameObject.SetActive(_expanded);
-        }
         // Trigger all ContentSizeFitters
         gameObject.SendMessageUpwards("SetLayoutHorizontal");
         gameObject.SendMessageUpwards("SetLayoutVertical");
     }
 
+    private void RemoveChildren()
+    {
+        for (var i = 0; i < transform.childCount; i++)
+        {
+            var child = transform.GetChild(i);
+            UnityEngine.Object.Destroy(child.gameObject);
+        }
+    }
+
+    private void AddChildren()
+    {
+        if (_setting == null)
+            return;
+
+        // Run setup for all settings, except non-shown conditionals
+        foreach (var subsetting in _setting.GetSettings())
+            if (!(subsetting is IConditionalSetting conditional) || conditional.CanShow())
+                AddSettingBlock(subsetting, _settingHandler);
+    }
+
     private void ApplyEnclosingStyling()
     {
-        // Only run for a top-level CollapsibleSettingUICell
+        // Only run for a top-level DynamicSettingListUICell
         if (!transform.parent.parent.gameObject.TryGetComponent<SettingsUICell>(out var comp))
         {
             return;
