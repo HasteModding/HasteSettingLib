@@ -12,6 +12,7 @@ public class CollapsibleSettingUI : SettingInputUICell
 {
     // Track expanded state
     private bool _expanded = false;
+		private CollapsibleSetting? _collapsibleSetting;
     private GameObject titleObject = new GameObject("SettingTitle");
     private GameObject settingObject = new GameObject("SettingCell");
     private string collapseButtonText
@@ -30,6 +31,8 @@ public class CollapsibleSettingUI : SettingInputUICell
     {
         if (setting is CollapsibleSetting group)
         {
+						_collapsibleSetting = group;
+
             ApplyEnclosingStyling();
             AddCollapseButton();
 
@@ -61,6 +64,8 @@ public class CollapsibleSettingUI : SettingInputUICell
 
     private void OnToggled()
     {
+				if (_collapsibleSetting != null && _collapsibleSetting.OnToggled())
+						return;
         _expanded = !_expanded;
         SetVisibility();
     }
