@@ -33,6 +33,7 @@ public class DynamicSettingListUI : SettingInputUICell
             ApplyEnclosingStyling();
 
             _setting = dynamicSetting;
+            _setting.SetUIElement(this);
             _settingHandler = settingHandler;
             AddChildren();
         }
@@ -44,6 +45,8 @@ public class DynamicSettingListUI : SettingInputUICell
         AddChildren();
 
         // Trigger all ContentSizeFitters
+        LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
+
         gameObject.SendMessageUpwards("SetLayoutHorizontal");
         gameObject.SendMessageUpwards("SetLayoutVertical");
     }
@@ -161,7 +164,7 @@ public class DynamicSettingListUI : SettingInputUICell
 
     private void SetUpSettingObject()
     {
-        titleObject.transform.parent = settingObject.transform;
+        titleObject.transform.SetParent(settingObject.transform, false);
 
         var layout = settingObject.AddComponent<VerticalLayoutGroup>();
         // Little breathing room

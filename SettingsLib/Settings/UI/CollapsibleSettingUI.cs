@@ -170,7 +170,7 @@ public class CollapsibleSettingUI : SettingInputUICell
 
     private void SetUpSettingObject()
     {
-        titleObject.transform.parent = settingObject.transform;
+        titleObject.transform.SetParent(settingObject.transform, false);
 
         var layout = settingObject.AddComponent<VerticalLayoutGroup>();
         // Little breathing room

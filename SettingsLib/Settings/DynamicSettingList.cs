@@ -15,6 +15,11 @@ public abstract class DynamicSettingList : Setting
         return Settings;
     }
 
+    public void SetUIElement(UI.DynamicSettingListUI uiElement)
+    {
+        _uiElement = uiElement;
+    }
+
     public virtual void UpdateUI()
     {
         _uiElement?.RefreshList();
@@ -57,7 +62,7 @@ public abstract class DynamicSettingList : Setting
         var vlg = obj.AddComponent<VerticalLayoutGroup>();
         vlg.padding.left = 10;
         vlg.padding.right = 10;
-        _uiElement = obj.AddComponent<UI.DynamicSettingListUI>();
+        obj.AddComponent<UI.DynamicSettingListUI>();
 
         return obj;
     }
