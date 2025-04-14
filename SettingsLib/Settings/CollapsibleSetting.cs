@@ -23,6 +23,8 @@ public abstract class CollapsibleSetting : Setting
         return settings;
     }
 
+    public virtual void OnToggled(bool IsExpanded) { }
+
     public override void ApplyValue()
     {
         foreach (Setting setting in GetSettings())
