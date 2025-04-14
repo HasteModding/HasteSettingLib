@@ -14,14 +14,11 @@ namespace SettingsLib.Settings.UI
         private GameObject settingObject = new GameObject("SettingCell");
         private DynamicSettingList? _setting;
         private ISettingHandler _settingHandler = GameHandler.Instance.SettingsHandler;
-        private string collapseButtonText {
-					_expanded ? "▼ Collapse" : "► Expand";
-				}
+        private string collapseButtonText => _expanded ? "▼ Collapse" : "► Expand";
 
         public DynamicSettingListUI()
             : base()
         {
-            // No longer pre-create a title object.
             SetUpSettingObject();
         }
 

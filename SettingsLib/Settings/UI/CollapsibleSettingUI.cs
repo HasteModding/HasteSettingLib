@@ -67,10 +67,9 @@ namespace SettingsLib.Settings.UI
 
         private void OnToggled()
         {
-            if (_collapsibleSetting != null && _collapsibleSetting.OnToggled())
-                return;
             _expanded = !_expanded;
             SetVisibility();
+            _collapsibleSetting?.OnToggled(_expanded);
         }
 
         private void SetVisibility()
