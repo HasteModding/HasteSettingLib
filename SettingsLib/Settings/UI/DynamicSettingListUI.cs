@@ -5,184 +5,179 @@ using UnityEngine.UI;
 using Zorro.Localization;
 using Zorro.Settings;
 
-namespace SettingsLib.Settings.UI;
-
-public class DynamicSettingListUI : SettingInputUICell
+namespace SettingsLib.Settings.UI
 {
-    // Track expanded state
-    private bool _expanded = false;
-    private GameObject titleObject = new GameObject("SettingTitle");
-    private GameObject settingObject = new GameObject("SettingCell");
-    private DynamicSettingList? _setting;
-    private ISettingHandler _settingHandler = GameHandler.Instance.SettingsHandler;
-    private string collapseButtonText
+    public class DynamicSettingListUI : SettingInputUICell
     {
-        get => _expanded ? "▼ Collapse" : "► Expand";
-    }
+        // Track expanded state
+        private bool _expanded = false;
+        private GameObject settingObject = new GameObject("SettingCell");
+        private DynamicSettingList? _setting;
+        private ISettingHandler _settingHandler = GameHandler.Instance.SettingsHandler;
+        private string collapseButtonText {
+					_expanded ? "▼ Collapse" : "► Expand";
+				}
 
-    public DynamicSettingListUI()
-        : base()
-    {
-        SetUpTitleObject();
-        SetUpSettingObject();
-    }
-
-    public override void Setup(Setting setting, ISettingHandler settingHandler)
-    {
-        if (setting is DynamicSettingList dynamicSetting)
+        public DynamicSettingListUI()
+            : base()
         {
-            ApplyEnclosingStyling();
-
-            _setting = dynamicSetting;
-            _setting.SetUIElement(this);
-            _settingHandler = settingHandler;
-            AddChildren();
-        }
-    }
-
-    public void RefreshList()
-    {
-        RemoveChildren();
-        AddChildren();
-
-        // Trigger all ContentSizeFitters
-        LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
-
-        gameObject.SendMessageUpwards("SetLayoutHorizontal");
-        gameObject.SendMessageUpwards("SetLayoutVertical");
-    }
-
-    private void RemoveChildren()
-    {
-        for (var i = 0; i < transform.childCount; i++)
-        {
-            var child = transform.GetChild(i);
-            UnityEngine.Object.Destroy(child.gameObject);
-        }
-    }
-
-    private void AddChildren()
-    {
-        if (_setting == null)
-            return;
-
-        // Run setup for all settings, except non-shown conditionals
-        foreach (var subsetting in _setting.GetSettings())
-            if (!(subsetting is IConditionalSetting conditional) || conditional.CanShow())
-                AddSettingBlock(subsetting, _settingHandler);
-    }
-
-    private void ApplyEnclosingStyling()
-    {
-        // Only run for a top-level DynamicSettingListUICell
-        if (!transform.parent.parent.gameObject.TryGetComponent<SettingsUICell>(out var comp))
-        {
-            return;
+            // No longer pre-create a title object.
+            SetUpSettingObject();
         }
 
-        // Make the top level setting box's background and text ignore the Layout
-        int idx = transform.parent.GetSiblingIndex();
-        for (int i = 0; i < transform.parent.parent.childCount; i++)
+        public override void Setup(Setting setting, ISettingHandler settingHandler)
         {
-            if (i == idx)
-                continue;
-            var child = transform.parent.parent.GetChild(i);
-            child.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-        }
-
-        // Breaks without this
-        transform.parent.gameObject.AddComponent<VerticalLayoutGroup>();
-
-        MakeSettingBoxAdaptable();
-    }
-
-    private void MakeSettingBoxAdaptable()
-    {
-        // Make the setting box as tall as necessary
-        var vlg = transform.parent.parent.gameObject.AddComponent<VerticalLayoutGroup>();
-        vlg.childControlWidth = false;
-        vlg.spacing = 10;
-        vlg.childAlignment = TextAnchor.MiddleRight;
-        // Give the bounding box some breathing room
-        vlg.padding.top = 15;
-        vlg.padding.bottom = 15;
-        transform.parent.parent.gameObject.AddComponent<ContentSizeFitter>().verticalFit =
-            ContentSizeFitter.FitMode.PreferredSize;
-    }
-
-    private void AddSettingBlock(Setting setting, ISettingHandler settingHandler)
-    {
-        var block = UnityEngine.Object.Instantiate(settingObject, transform);
-
-        LocalizedString titleText = null!;
-        if (setting is IExposedSetting exposedSetting)
-        {
-            titleText = exposedSetting.GetDisplayName();
-        }
-
-        // Find the title child object (it's the first child based on SetUpSettingObject)
-        var titleChildTransform = block.transform.GetChild(0);
-
-        // If the title is empty, destroy the title object. Otherwise, set its text.
-        if (titleText == null || titleText.IsEmpty)
-        {
-            UnityEngine.Object.Destroy(titleChildTransform.gameObject);
-        }
-        else
-        {
-            titleChildTransform.GetComponentInChildren<LocalizeUIText>()?.SetString(titleText);
-        }
-
-        AddSetting(setting, block.transform, settingHandler);
-    }
-
-    private void AddSetting(Setting setting, Transform transform, ISettingHandler settingHandler)
-    {
-        var ui = UnityEngine.Object.Instantiate(setting.GetSettingUICell(), transform);
-
-        // Give the field a height so it doesn't get destroyed by the layout
-        var layoutElement = ui.GetComponent<ILayoutElement?>();
-        if (layoutElement is null)
-        {
-            layoutElement = ui.AddComponent<LayoutElement>();
-        }
-        if (layoutElement.preferredHeight == -1 && layoutElement is LayoutElement elem)
-        {
-            elem.preferredHeight = setting switch
+            if (setting is DynamicSettingList dynamicSetting)
             {
-                ButtonSetting set => 55,
-                _ => 35,
-            };
+                ApplyEnclosingStyling();
+
+                _setting = dynamicSetting;
+                _setting.SetUIElement(this);
+                _settingHandler = settingHandler;
+                AddChildren();
+            }
         }
 
-        ui.GetComponent<SettingInputUICell>().Setup(setting, settingHandler);
-    }
+        public void RefreshList()
+        {
+            RemoveChildren();
+            AddChildren();
 
-    private void SetUpTitleObject()
-    {
-        var textMesh = titleObject.AddComponent<TextMeshProUGUI>();
-        textMesh.enableAutoSizing = true;
-        textMesh.alignment = TextAlignmentOptions.Center;
-        var text = titleObject.AddComponent<LocalizeUIText>();
-        text.String = null;
-        var layout = titleObject.AddComponent<LayoutElement>();
-        layout.preferredHeight = 20;
+            // Trigger all ContentSizeFitters
+            LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
 
-        UnityEngine.Object.DontDestroyOnLoad(titleObject);
-    }
+            gameObject.SendMessageUpwards("SetLayoutHorizontal");
+            gameObject.SendMessageUpwards("SetLayoutVertical");
+        }
 
-    private void SetUpSettingObject()
-    {
-        titleObject.transform.SetParent(settingObject.transform, false);
+        private void RemoveChildren()
+        {
+            for (var i = 0; i < transform.childCount; i++)
+            {
+                var child = transform.GetChild(i);
+                UnityEngine.Object.Destroy(child.gameObject);
+            }
+        }
 
-        var layout = settingObject.AddComponent<VerticalLayoutGroup>();
-        // Little breathing room
-        layout.spacing = 2;
-        layout.padding.top = 13;
-        settingObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter
-            .FitMode
-            .PreferredSize;
+        private void AddChildren()
+        {
+            if (_setting == null)
+                return;
 
-        UnityEngine.Object.DontDestroyOnLoad(settingObject);
+            // Run setup for all settings, except non-shown conditionals.
+            foreach (var subsetting in _setting.GetSettings())
+            {
+                if (!(subsetting is IConditionalSetting conditional) || conditional.CanShow())
+                    AddSettingBlock(subsetting, _settingHandler);
+            }
+        }
+
+        private void ApplyEnclosingStyling()
+        {
+            // Only run for a top-level DynamicSettingListUI.
+            if (!transform.parent.parent.gameObject.TryGetComponent<SettingsUICell>(out var comp))
+            {
+                return;
+            }
+
+            // Make the top level setting box's background and text ignore the layout.
+            int idx = transform.parent.GetSiblingIndex();
+            for (int i = 0; i < transform.parent.parent.childCount; i++)
+            {
+                if (i == idx)
+                    continue;
+                var child = transform.parent.parent.GetChild(i);
+                child.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            }
+
+            // This is required to force the layout.
+            transform.parent.gameObject.AddComponent<VerticalLayoutGroup>();
+
+            MakeSettingBoxAdaptable();
+        }
+
+        private void MakeSettingBoxAdaptable()
+        {
+            // Make the setting box as tall as necessary.
+            var vlg = transform.parent.parent.gameObject.AddComponent<VerticalLayoutGroup>();
+            vlg.childControlWidth = false;
+            vlg.spacing = 10;
+            vlg.childAlignment = TextAnchor.MiddleRight;
+            // Give the bounding box some breathing room.
+            vlg.padding.top = 15;
+            vlg.padding.bottom = 15;
+            transform.parent.parent.gameObject.AddComponent<ContentSizeFitter>().verticalFit =
+                ContentSizeFitter.FitMode.PreferredSize;
+        }
+
+        private void AddSettingBlock(Setting setting, ISettingHandler settingHandler)
+        {
+            // Instantiate a new container using settingObject as template.
+            var block = UnityEngine.Object.Instantiate(settingObject, transform);
+
+            // Check if the setting defines a title.
+            if (setting is IExposedSetting exposedSetting)
+            {
+                LocalizedString titleText = exposedSetting.GetDisplayName();
+                if (titleText != null && !titleText.IsEmpty)
+                {
+                    AddSettingTitle(titleText, block.transform);
+                }
+            }
+
+            AddSetting(setting, block.transform, settingHandler);
+        }
+
+        private void AddSettingTitle(LocalizedString titleText, Transform parentTransform)
+        {
+            var titleObj = new GameObject("SettingTitle");
+            titleObj.transform.SetParent(parentTransform, false);
+
+            var textMesh = titleObj.AddComponent<TextMeshProUGUI>();
+            textMesh.enableAutoSizing = true;
+            textMesh.alignment = TextAlignmentOptions.Center;
+
+            var localizeUIText = titleObj.AddComponent<LocalizeUIText>();
+            localizeUIText.SetString(titleText);
+
+            var layout = titleObj.AddComponent<LayoutElement>();
+            layout.preferredHeight = 20;
+        }
+
+        private void AddSetting(Setting setting, Transform parent, ISettingHandler settingHandler)
+        {
+            var ui = UnityEngine.Object.Instantiate(setting.GetSettingUICell(), parent);
+
+            // Ensure the element gets a preferred height so it isn’t collapsed by the
+            // layout.
+            var layoutElement = ui.GetComponent<ILayoutElement?>();
+            if (layoutElement is null)
+            {
+                layoutElement = ui.AddComponent<LayoutElement>();
+            }
+            if (layoutElement.preferredHeight == -1 && layoutElement is LayoutElement elem)
+            {
+                elem.preferredHeight = setting switch
+                {
+                    ButtonSetting set => 55,
+                    _ => 35,
+                };
+            }
+
+            ui.GetComponent<SettingInputUICell>().Setup(setting, settingHandler);
+        }
+
+        private void SetUpSettingObject()
+        {
+            var layout = settingObject.AddComponent<VerticalLayoutGroup>();
+            // Little breathing room.
+            layout.spacing = 2;
+            layout.padding.top = 13;
+            settingObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter
+                .FitMode
+                .PreferredSize;
+
+            UnityEngine.Object.DontDestroyOnLoad(settingObject);
+        }
     }
 }
