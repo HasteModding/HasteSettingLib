@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Localization;
+using UnityEngine.UI;
 using Zorro.Localization;
 using Zorro.Settings;
 

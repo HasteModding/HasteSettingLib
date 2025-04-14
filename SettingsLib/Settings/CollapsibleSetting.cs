@@ -23,10 +23,10 @@ public abstract class CollapsibleSetting : Setting
         return settings;
     }
 
-		public virtual bool OnToggled()
-		{
-			return false;
-		}
+    public virtual bool OnToggled()
+    {
+        return false;
+    }
 
     public override void ApplyValue()
     {
