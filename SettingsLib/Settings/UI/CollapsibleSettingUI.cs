@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 using Zorro.Core;
 using Zorro.Localization;
@@ -13,10 +14,7 @@ public class CollapsibleSettingUI : SettingInputUICell
     private bool _expanded = false;
     private GameObject titleObject = new GameObject("SettingTitle");
     private GameObject settingObject = new GameObject("SettingCell");
-    private string collapseButtonText
-    {
-        get => _expanded ? "▼ Collapse" : "► Expand";
-    }
+    private string collapseButtonText => _expanded ? "▼ Collapse" : "► Expand";
 
     public CollapsibleSettingUI()
         : base()
@@ -119,18 +117,20 @@ public class CollapsibleSettingUI : SettingInputUICell
     {
         var block = UnityEngine.Object.Instantiate(settingObject, transform);
 
-        AddSettingTitle(setting, block.transform);
+        // Only add a title when there is one available
+        if (
+            setting is IExposedSetting exposedSetting
+            && !String.IsNullOrEmpty(exposedSetting.GetDisplayName().GetLocalizedString())
+        )
+            AddSettingTitle(exposedSetting.GetDisplayName(), block.transform);
         AddSetting(setting, block.transform, settingHandler);
     }
 
-    private void AddSettingTitle(Setting setting, Transform transform)
+    private void AddSettingTitle(LocalizedString title, Transform transform)
     {
-        if (setting is IExposedSetting exposedSetting)
-        {
-            transform
-                .GetComponentInChildren<LocalizeUIText>()
-                ?.SetString(exposedSetting.GetDisplayName());
-        }
+        var titleInstance = UnityEngine.Object.Instantiate(titleObject, transform);
+
+        titleInstance.GetComponent<LocalizeUIText>()?.SetString(title);
     }
 
     private void AddSetting(Setting setting, Transform transform, ISettingHandler settingHandler)
@@ -170,8 +170,6 @@ public class CollapsibleSettingUI : SettingInputUICell
 
     private void SetUpSettingObject()
     {
-        titleObject.transform.SetParent(settingObject.transform, false);
-
         var layout = settingObject.AddComponent<VerticalLayoutGroup>();
         // Little breathing room
         layout.spacing = 2;
