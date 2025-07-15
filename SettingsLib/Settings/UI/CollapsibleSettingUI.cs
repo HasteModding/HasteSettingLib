@@ -118,10 +118,7 @@ public class CollapsibleSettingUI : SettingInputUICell
         var block = UnityEngine.Object.Instantiate(settingObject, transform);
 
         // Only add a title when there is one available
-        if (
-            setting is IExposedSetting exposedSetting
-            && !String.IsNullOrEmpty(exposedSetting.GetDisplayName().GetLocalizedString())
-        )
+        if (setting is IExposedSetting exposedSetting && !exposedSetting.GetDisplayName().IsEmpty)
             AddSettingTitle(exposedSetting.GetDisplayName(), block.transform);
         AddSetting(setting, block.transform, settingHandler);
     }
